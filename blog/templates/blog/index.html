@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+
+<html>
+    <body>
+        <div id="blog">
+            <div
+                v-for="post in posts"
+                v-bind:key="post.id"
+            >
+                <h2>[[ post.title ]]</h2>
+            </div>
+
+            <template v-if="showPrevButton">
+                <button @click="loadPrev()">Prev</button>
+            </template>
+
+            <template v-if="showNextButton">
+                <button @click="loadNext()">Next</button>
+            </template>
+        </div>
+
+        <script src="https://unpkg.com/vue@next"></script>
+        <script>
+            const Blog = {
+                data() {
+                    return {
+                        posts: [],
+                        currentPage: 1,
+                        showNextButton: false,
+                        showPrevButton: false
+                    }
+                },
+                delimiters: ['[[', ']]'],
+                mounted() {
+                    this.getPosts()
+                },
+                methods: {
+                    loadNext() {
+                        this.currentPage += 1
+                        this.getPosts()
+                    },
+                    loadPrev() {
+                        this.currentPage -= 1
+                        this.getPosts()
+                    },
+                    getPosts() {
+                        fetch(`/posts/?page=${this.currentPage}`)
+                            .then(response => {
+                                return response.json()
+                            })
+                            .then(data => {
+                                console.log(data)
+
+                                this.showNextButton = false
+                                this.showPrevButton = false
+                                
+                                if (data.next) {
+                                    this.showNextButton = true
+                                }
+
+                                if (data.previous) {
+                                    this.showPrevButton = true
+                                }
+
+                                this.posts = data.results
+                            })
+                            .catch(error => {
+                                console.log(error)
+                            })
+                    }
+                }
+            }
+
+            Vue.createApp(Blog).mount('#blog')
+        </script>
+    </body>
+</html>
